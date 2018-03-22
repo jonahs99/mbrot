@@ -1,5 +1,5 @@
 # Yet another mandelbrot set visualization
 
-My plan is to randomly sample points within viewing pixels. Then the contributing points for each pixel can be averaged so that we get some nice anti-aliasing.
+!(sample output)[out.png]
 
-Should be easy!
+Go has built-in support for complex numbers! The visualization above is colored according to the number of iterations before the coordinate diverges. Multiple points are randomly sampled within each pixel to get some anti-aliasing.
