@@ -9,6 +9,8 @@ import (
 	"math/cmplx"
 	"math/rand"
 	"os"
+
+	"github.com/jonahs99/sobel"
 )
 
 type point struct {
@@ -25,11 +27,16 @@ func main() {
 	samples := flag.Int("samples", 10, "number of samples per pixel")
 	threshhold := flag.Float64("thresh", 100.0, "divergence threshhold")
 	iterations := flag.Int("iterations", 255, "max number of iterations per sample")
+	doSobel := flag.Bool("sobel", false, "perform edge detection on output")
 	outPath := flag.String("out", "out.png", "path to output image")
 
 	flag.Parse()
 
 	img := vis(*minx, *miny, *maxx, *maxy, *scale, *threshhold, *iterations, *samples)
+
+	if *doSobel {
+		img = sobel.ApplySobel(img)
+	}
 
 	file, err := os.Create(*outPath)
 	defer file.Close()
