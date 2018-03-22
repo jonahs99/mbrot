@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"image"
 	"image/color"
@@ -16,19 +17,36 @@ type point struct {
 }
 
 func main() {
-	minx, miny := -2.0, -1.0
-	maxx, maxy := 1.0, 1.0
+	minx := flag.Float64("minx", -2.2, "left-most real coordinate")
+	miny := flag.Float64("miny", -1.2, "top-most imaginary coordinate")
+	maxx := flag.Float64("maxx", 1.2, "right-most real coordinate")
+	maxy := flag.Float64("maxy", 1.2, "bottom-most imaginary coordinate")
+	scale := flag.Float64("scale", 32.0, "number of pixels per complex unit")
+	samples := flag.Int("samples", 10, "number of samples per pixel")
+	threshhold := flag.Float64("thresh", 100.0, "divergence threshhold")
+	iterations := flag.Int("iterations", 255, "max number of iterations per sample")
+	outPath := flag.String("out", "out.png", "path to output image")
 
-	scale := 512.0
+	flag.Parse()
 
+	img := vis(*minx, *miny, *maxx, *maxy, *scale, *threshhold, *iterations, *samples)
+
+	file, err := os.Create(*outPath)
+	defer file.Close()
+	if err != nil {
+		fmt.Printf("Couldn't create output file!\n")
+	}
+
+	err = png.Encode(file, img)
+	if err != nil {
+		fmt.Printf("Failed to encode image!\n")
+	}
+}
+
+func vis(minx, miny, maxx, maxy, scale, threshhold float64, iterations, samples int) image.Image {
 	w, h := int((maxx-minx)*scale), int((maxy-miny)*scale)
 
-	samples := 20
-
 	points := make([]point, 0, w*h*samples)
-
-	threshhold := 100.0
-	iterations := 255
 
 	for i := 0; i < samples; i++ {
 		for y := 0; y < h; y++ {
@@ -55,14 +73,7 @@ func main() {
 			img.Set(x, y, c)
 		}
 	}
-
-	file, err := os.Create("out.png")
-	defer file.Close()
-	if err != nil {
-		fmt.Printf("Couldn't create output file!\n")
-	}
-
-	png.Encode(file, img)
+	return img
 }
 
 func mbrot(c complex128, threshhold float64, iterations int) int {
@@ -73,9 +84,6 @@ func mbrot(c complex128, threshhold float64, iterations int) int {
 		if cmplx.Abs(z) > threshhold {
 			break
 		}
-	}
-	if i == iterations {
-		return 255
 	}
 	return i
 }
